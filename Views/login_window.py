@@ -86,6 +86,13 @@ class LoginView:
         self.login_button = ttk.Button(self.bottom_frame, text="Log in", width=10, command=self.login)
         self.login_button.grid(row=6, column=0, columnspan=2, pady=20, padx=20)
 
+        # Sign-up link
+        self.signup_label = tk.Label(self.bottom_frame,
+                                     text="If you don't have an account, you can open a new one here!",
+                                     font=("Helvetica", 10), fg="blue", cursor="hand2")
+        self.signup_label.grid(row=7, column=0, columnspan=2, pady=(0, 20))
+        self.signup_label.bind("<Button-1>", lambda e: self.controller.sign_up())
+
     def login(self):
         if self.controller is not None:
             email = self.email_entry.get()

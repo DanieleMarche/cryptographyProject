@@ -10,10 +10,9 @@ from Views.settings_frame import SettingsFrame
 
 
 class LoginController:
-    def __init__(self, view: LoginView, model):
+    def __init__(self, view: LoginView):
         self.view = view
         view.add_controller(self)
-        self.model = model
 
     def login(self, username, password):
         # Verifica semplice delle credenziali
@@ -28,4 +27,7 @@ class LoginController:
             root.mainloop()
         else:
             messagebox.showerror("Errore", "Credenziali non valide")
+
+    def sign_up(self):
+        messagebox.showinfo("Sign Up", "Sign Up feature not implemented yet")
 
