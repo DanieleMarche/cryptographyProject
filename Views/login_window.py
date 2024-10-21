@@ -1,12 +1,14 @@
 import tkinter as tk
+from logging import raiseExceptions
 from tkinter import ttk
 from PIL import Image, ImageTk
 
 class LoginView:
-    def __init__(self, root, controller):
+    def __init__(self, root):
         self.root = root
-        self.controller = controller
+        self.controller = None
         self.root.title("MyBank")
+
         self.root.geometry('400x500')
         self.root.resizable(False, False)  # Make the window non-resizable
 
@@ -85,7 +87,12 @@ class LoginView:
         self.login_button.grid(row=6, column=0, columnspan=2, pady=20, padx=20)
 
     def login(self):
-        email = self.email_entry.get()
-        password = self.password_entry.get()
-        self.controller.login(email, password)
+        if self.controller is not None:
+            email = self.email_entry.get()
+            password = self.password_entry.get()
+            self.controller.login(email, password)
+            return
 
+    #This function add a controller at the view if it does not already have it
+    def add_controller(self, controller):
+            self.controller = controller

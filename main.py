@@ -3,23 +3,20 @@ import tkinter as tk
 import Models.user_model
 from Controllers.LoginController import *
 from Models.user_model import UserModel
-from Views.log_in_page_view import LoginView
+from Views.login_window import LoginView
 
 if __name__ == "__main__":
     root = tk.Tk()
 
-    # Creates controller with the view
+    # Creates the model
     model = UserModel()
 
-    controller = LoginController(model)
-    # Creates the view
-    view = LoginView(root, controller)
+    #Create the view
+    view = LoginView(root)
 
+    #Create the controller
+    login_controller = LoginController(view, model)
 
-
-
-
-
-    # Esecuzione della finestra
+    # Run the main loop
     root.mainloop()
 
