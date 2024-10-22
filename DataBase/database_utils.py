@@ -1,6 +1,6 @@
 import requests
 
-from Cryptography.cryptography_utils import password_hash
+from Cryptography.cryptography_utils import password_hash, password_check
 
 url = "https://ipjvdwudqwizxnxjfzyx.supabase.co/rest/v1/user"
 
@@ -25,3 +25,22 @@ def get_hashed_pwd(usr: str):
             return result[0]["password"]
     return None
 
+def user_login(usr: str, psw: str):
+    if password_check(psw, get_hashed_pwd(usr)):
+        data = {
+            "select": "email, name, surname, money, birthday",
+            "email": f"eq.{usr}",
+        }
+
+        response = requests.get(url, headers=headers, params=data)
+
+        print(response)
+
+        if response.status_code == 200:
+            result = response.json()
+            if result:
+                return result[0]
+        else:
+            raise Exception("Server error")
+
+    return None

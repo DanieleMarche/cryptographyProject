@@ -1,19 +1,16 @@
 from Cryptography.cryptography_utils import password_hash, password_check
-from DataBase.database_utils import get_hashed_pwd
+from DataBase.database_utils import get_hashed_pwd, user_login
 
 
 class UserModel:
 
     def __init__(self, username, password):
-        if password_check(password_hash(password), get_hashed_pwd(username)):
-            self.username = None
-            self.name = None
-            self.email = None
-            self.balance = None
-            self.date_of_birth = None
-            #TOBEFINISHED
+        response = user_login(username, password)
+        if response:
+            self.username = response["email"]
+            self.name = response["name"]
+            self.surname = response["surname"]
+            self.balance = response["money"]
+            self.date_of_birth = response["birthday"]
         else:
-            raise ValueError("Wrong password or username")
-
-
-
+            raise ValueError("Invalid credentials")
