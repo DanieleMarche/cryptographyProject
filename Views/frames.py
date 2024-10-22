@@ -18,5 +18,6 @@ class MainPageFrame(tk.Frame):
     def add_controller (self, controller):
         self.controller = controller
 
-
+    def update_data(self, *args, **kwargs):
+        pass
 

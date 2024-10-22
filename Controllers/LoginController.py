@@ -20,11 +20,12 @@ class LoginController:
         try:
             if UserModel(username, password):
                 self.view.root.destroy()  # Close the LoginView
-                root = tk.Tk() # Create a new Tkinter root window
-                frames = {frames.name: frames for frames in [HomePage(root), SendMoneyFrame(root), SettingsFrame(root)]}
-                main_window = MainWindow(root, frames)
 
-                window_controller = WindowController(main_window, frames)  # Create a new WindowController
+                root = tk.Tk() # Create a new Tkinter root window
+
+                window_controller = WindowController()
+                main_window = MainWindow(root, window_controller)
+                window_controller.add_window(main_window)
                   # Open the MainWindow
                 root.mainloop()
         except ValueError:

@@ -14,3 +14,5 @@ class UserModel:
             self.date_of_birth = response["birthday"]
         else:
             raise ValueError("Invalid credentials")
+
+

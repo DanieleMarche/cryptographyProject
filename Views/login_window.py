@@ -101,7 +101,7 @@ class LoginView:
             email = self.email_entry.get()
             password = self.password_entry.get()
             self.controller.login(email, password)
-            return
+
 
     # This function adds a controller to the view if it does not already have it
     def add_controller(self, controller):
