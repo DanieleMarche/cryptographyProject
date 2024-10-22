@@ -1,6 +1,6 @@
 import requests
 
-from Cryptography.cryptography_utils import password_hash, password_check
+from Cryptography.cryptography_utils import text_hash, equals
 
 url = "https://ipjvdwudqwizxnxjfzyx.supabase.co/rest/v1/user"
 
@@ -13,20 +13,20 @@ headers = {
     "Content-Type": "application/json"
 }
 
-def get_hashed_pwd(usr: str):
+def get_hashed(usr: str):
     data = {
-        "select": "password",
+        "select": "password, secret_code",
         "email": f"eq.{usr}",
     }
     response = requests.get(url, headers=headers, params=data)
     if response.status_code == 200:
         result = response.json()
         if result:
-            return result[0]["password"]
+            return result[0]["password"], result[0]["secret_code"]
     return None
 
-def user_login(usr: str, psw: str):
-    if password_check(psw, get_hashed_pwd(usr)):
+def user_login(usr: str, psw: str, secret_code: str):
+    if equals(psw, get_hashed(usr)[0] and equals(secret_code, get_hashed(secret_code)[1])):
         data = {
             "select": "email, name, surname, money, birthday",
             "email": f"eq.{usr}",

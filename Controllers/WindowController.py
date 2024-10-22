@@ -1,14 +1,15 @@
 import tkinter as tk
 from tkinter import Frame
 
+from Models.user_model import UserModel
 from Views.main_window import MainWindow
 
 class WindowController:
     def __init__(self):
         self.window = None
+        self.usr_model = None
 
     def change_frame(self, frame_name):
-        """Mostra il frame specificato e nasconde gli altri."""
         # Nascondi tutti i frame
         if self.window:
             for frame in self.window.frames.values():
@@ -25,6 +26,11 @@ class WindowController:
             frame.add_controller(self)
 
         self.change_frame("Home")
+
+    def add_usr_model(self, usr_model: UserModel):
+        self.usr_model = usr_model
+        for frame in self.window.frames.values():
+            frame.get_data(usr_model)
 
 
 

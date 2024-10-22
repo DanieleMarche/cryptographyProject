@@ -1,11 +1,11 @@
-from Cryptography.cryptography_utils import password_hash, password_check
-from DataBase.database_utils import get_hashed_pwd, user_login
+from Cryptography.cryptography_utils import text_hash, equals
+from DataBase.database_utils import get_hashed, user_login
 
 
 class UserModel:
 
-    def __init__(self, username, password):
-        response = user_login(username, password)
+    def __init__(self, username, password, secret_code):
+        response = user_login(username, password, secret_code)
         if response:
             self.username = response["email"]
             self.name = response["name"]

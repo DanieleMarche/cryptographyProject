@@ -1,9 +1,9 @@
 import hashlib
 
-def password_hash(psw: str) -> str:
-    return hashlib.sha512(psw.encode()).hexdigest()
+def text_hash(text: str) -> str:
+    return hashlib.sha512(text.encode()).hexdigest()
 
 
-def password_check(psw: str, hashed_psw: str) -> bool:
-    return password_hash(psw) == hashed_psw
+def equals(clear_text: str, hashed_text: str) -> bool:
+    return text_hash(clear_text) == hashed_text
 

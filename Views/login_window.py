@@ -8,7 +8,7 @@ class LoginView:
         self.controller = None
         self.root.title("MyBank")
 
-        self.root.geometry('400x500')
+        self.root.geometry('400x600')
         self.root.resizable(False, False)  # Make the window non-resizable
 
         # Bring the window to the front
@@ -16,7 +16,7 @@ class LoginView:
 
         # Center the window
         window_width = 400
-        window_height = 500
+        window_height = 600
 
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
@@ -81,25 +81,34 @@ class LoginView:
         self.password_entry = ttk.Entry(self.bottom_frame, width=30, show="*", style="Rounded.TEntry")
         self.password_entry.grid(row=5, column=0, columnspan=2, pady=(0, 15), padx=20, sticky="ew")
 
+        # Secret Code Label
+        self.secret_code_label = ttk.Label(self.bottom_frame, text="🤫 Secret Code", font=("Helvetica", 14))
+        self.secret_code_label.grid(row=6, column=0, columnspan=2, pady=10, padx=20, sticky="w")
+
+        # Secret Code Entry
+        self.secret_code_entry = ttk.Entry(self.bottom_frame, width=30, show="*", style="Rounded.TEntry")
+        self.secret_code_entry.grid(row=7, column=0, columnspan=2, pady=(0, 15), padx=20, sticky="ew")
+
         # Error message label (initially hidden)
         self.error_label = tk.Label(self.bottom_frame, text="", font=("Helvetica", 10), fg="red")
-        self.error_label.grid(row=6, column=0, columnspan=2, pady=(0, 10))
+        self.error_label.grid(row=8, column=0, columnspan=2, pady=(0, 10))
 
         # Login Button
         self.login_button = ttk.Button(self.bottom_frame, text="Log in", width=10, command=self.login)
-        self.login_button.grid(row=7, column=0, columnspan=2, pady=20, padx=20)
+        self.login_button.grid(row=9, column=0, columnspan=2, pady=20, padx=20)
 
         # Sign-up link
         self.signup_label = tk.Label(self.bottom_frame,
                                      text="If you don't have an account, you can open a new one here!",
                                      font=("Helvetica", 10), fg="blue", cursor="hand2")
-        self.signup_label.grid(row=8, column=0, columnspan=2, pady=(0, 20))
+        self.signup_label.grid(row=10, column=0, columnspan=2, pady=(0, 20))
         self.signup_label.bind("<Button-1>", lambda e: self.controller.sign_up())
 
     def login(self):
         if self.controller is not None:
             email = self.email_entry.get()
             password = self.password_entry.get()
+            secret_code = self.secret_code_entry.get()
             self.controller.login(email, password)
 
 
