@@ -1,4 +1,5 @@
+from supabase import create_client, Client
 
-class RegistrationPage:
-    def __init__(self, driver):
-        self.driver = driver
+supabase_url = "https://ldbsmswgtwtkxduqmoip.supabase.co"
+supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYnNtc3dndHd0a3hkdXFtb2lwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjk2MDI5ODEsImV4cCI6MjA0NTE3ODk4MX0.7GndoQP5VHZx1dAfMwcLMlmJjwUcEsFMsuZLv77mG0k"
+supabase: Client = create_client(supabase_url, supabase_key)
