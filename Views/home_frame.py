@@ -31,7 +31,7 @@ class HomePage(MainPageFrame):
             self.transactions_list.insert(tk.END, transaction)
 
 
-    def get_data(self, model):
+    def set_data(self, model):
         self.name = model.name
         self.balance = model.balance
         #self.transactions = model.transactions

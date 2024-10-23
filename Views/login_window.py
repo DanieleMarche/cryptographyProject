@@ -73,6 +73,7 @@ class LoginView:
         self.email_entry = ttk.Entry(self.bottom_frame, width=30, style="Rounded.TEntry")
         self.email_entry.grid(row=3, column=0, columnspan=2, pady=(0,15), padx=20, sticky="ew")
 
+
         # Password Label
         self.password_label = ttk.Label(self.bottom_frame, text="*️⃣ Password", font=("Helvetica", 14))
         self.password_label.grid(row=4, column=0, columnspan=2, pady=10, padx=20, sticky="w")
@@ -109,7 +110,7 @@ class LoginView:
             email = self.email_entry.get()
             password = self.password_entry.get()
             secret_code = self.secret_code_entry.get()
-            self.controller.login(email, password)
+            self.controller.login(email, password, secret_code)
 
 
     # This function adds a controller to the view if it does not already have it

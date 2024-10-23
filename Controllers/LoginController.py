@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
 
+import json
+
 from Controllers.WindowController import WindowController
 from Models.user_model import UserModel
 from Views.login_window import LoginView
@@ -12,10 +14,24 @@ class LoginController:
         self.view = view
         view.add_controller(self)
 
-    def login(self, username, password):
+        self.check_remembered_user()
+
+    def check_remembered_user(self):
+        try:
+            with open('Documents/remember_user.json', 'r') as file:
+                data = json.load(file)
+                if data.get('email', '') != '':
+                    self.view.email_entry.insert(0, data['email'])
+        except FileNotFoundError:
+            print("File not found")
+        except json.JSONDecodeError:
+            print("Error decoding JSON")
+
+    def login(self, username, password, secret_code):
         # Verifica semplice delle credenziali
         try:
-            usr = UserModel(username, password)
+
+            usr = UserModel(username, password, secret_code)
 
             self.view.root.destroy()  # Close the LoginView
 

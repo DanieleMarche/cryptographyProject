@@ -3,7 +3,6 @@ from tkinter import ttk
 import customtkinter
 from PIL import Image, ImageTk
 
-from Views.frames import MainPageFrame
 from Views.home_frame import HomePage
 from Views.send_money_frame import SendMoneyFrame
 from Views.settings_frame import SettingsFrame
@@ -43,7 +42,7 @@ class MainWindow:
         self.frames = {
             "Home": HomePage(self.main_frame),
             "Send Money": SendMoneyFrame(self.main_frame),
-            "Settings": SettingsFrame(self.main_frame)
+            "Settings": SettingsFrame(self.main_frame, )
         }
 
         # Load and display the logo image
