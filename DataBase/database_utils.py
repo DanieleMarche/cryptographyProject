@@ -1,7 +1,6 @@
 import requests
 
 from Cryptography.cryptography_utils import text_hash, equals, get_mac_address
-import touchid
 
 url = "https://ipjvdwudqwizxnxjfzyx.supabase.co/rest/v1/user"
 
@@ -27,18 +26,6 @@ def get_hashed(usr: str):
     return None
 
 def user_login(usr: str, psw: str, secret_code: str):
-    if psw == "" and secret_code == "":
-        data = {
-            "select": "touch_id, touch_id_device",
-            "email": f"eq.{usr}",
-        }
-
-        response = requests.get(url, headers=headers, params=data).json()
-
-        if response["touch_id"] and get_mac_address() == response["touch_id_device"] and authenticate:
-            return get_user_data(usr)
-
-    else:
 
         hashed_psw, hashed_secret_code = get_hashed(usr)
         if equals(psw, hashed_psw) and equals(secret_code, hashed_secret_code):
