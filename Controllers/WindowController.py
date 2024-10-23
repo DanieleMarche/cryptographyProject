@@ -1,24 +1,53 @@
-from tkinter import Frame
+import tkinter as tk
+from tkinter import Frame, messagebox
 
+from Cryptography.cryptography_utils import get_mac_address
+from Models.user_model import UserModel
 from Views.main_window import MainWindow
 
-
 class WindowController:
-    def __init__(self, window: MainWindow, frames: dict[str:Frame]):
-        self.window = window
-        window.add_controller(self)
-
-        self.frames = frames
-        for frame in frames.values():
-            frame.add_controller(self)
-        self.current_frame = list(frames.values())[0]
-
-        window.change_frame(self.current_frame)
+    def __init__(self):
+        self.window = None
+        self.usr_model = None
 
     def change_frame(self, frame_name):
-        self.current_frame.pack_forget()
-        self.current_frame = self.frames[frame_name]
-        self.current_frame.pack()
+        # Nascondi tutti i frame
+        if self.window:
+            for frame in self.window.frames.values():
+                frame.pack_forget()
+
+            # Mostra il frame selezionato
+            frame = self.window.frames[frame_name]
+            frame.pack(fill=tk.BOTH, expand=True)
+
+    def add_window(self, window: MainWindow):
+        self.window = window
+
+        for frame in self.window.frames.values():
+            frame.add_controller(self)
+
+        self.change_frame("Home")
+
+    def add_usr_model(self, usr_model: UserModel):
+        self.usr_model = usr_model
+        for frame in self.window.frames.values():
+            frame.set_data(usr_model)
+
+    def save_settings(self, touch_id: bool):
+        try:
+            self.usr_model.touch_id = touch_id
+            if touch_id:
+                self.usr_model.touch_id_device = get_mac_address()
+            else:
+                self.usr_model.touch_id_device = None
+
+            print(self.usr_model.touch_id)
+            print(self.usr_model.touch_id_device)
+            self.usr_model.save_user_data()
+        except Exception as e:
+            messagebox.showinfo(str(e))
+
+
 
 
 

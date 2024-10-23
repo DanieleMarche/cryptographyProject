@@ -1,6 +1,6 @@
 import requests
 
-from Cryptography.cryptography_utils import password_hash, password_check
+from Cryptography.cryptography_utils import text_hash, equals, get_mac_address
 
 url = "https://ipjvdwudqwizxnxjfzyx.supabase.co/rest/v1/user"
 
@@ -13,34 +13,59 @@ headers = {
     "Content-Type": "application/json"
 }
 
-def get_hashed_pwd(usr: str):
+def get_hashed(usr: str):
     data = {
-        "select": "password",
+        "select": "password, secret_code",
         "email": f"eq.{usr}",
     }
     response = requests.get(url, headers=headers, params=data)
     if response.status_code == 200:
         result = response.json()
         if result:
-            return result[0]["password"]
+            return result[0]["password"], result[0]["secret_code"]
     return None
 
-def user_login(usr: str, psw: str):
-    if password_check(psw, get_hashed_pwd(usr)):
-        data = {
-            "select": "email, name, surname, money, birthday",
-            "email": f"eq.{usr}",
-        }
+def user_login(usr: str, psw: str, secret_code: str):
 
-        response = requests.get(url, headers=headers, params=data)
+        hashed_psw, hashed_secret_code = get_hashed(usr)
+        if equals(psw, hashed_psw) and equals(secret_code, hashed_secret_code):
+            return get_user_data(usr)
 
-        print(response)
 
-        if response.status_code == 200:
-            result = response.json()
-            if result:
-                return result[0]
-        else:
-            raise Exception("Server error")
 
-    return None
+def get_user_data(usr):
+    data = {
+        "select": "email, name, surname, money, birthday, touch_id, touch_id_device",
+        "email": f"eq.{usr}",
+    }
+
+    response = requests.get(url, headers=headers, params=data)
+
+    print(response)
+
+    if response.status_code == 200:
+        result = response.json()
+        if result:
+            return result[0]
+    else:
+        raise Exception("Server error")
+
+def update_database(usr: str, touch_id: bool, touch_id_device: str):
+    # Dati da aggiornare
+    data = {
+        "touch_id": touch_id,
+        "touch_id_device": touch_id_device
+    }
+
+    # URL specifico con la condizione di filtro basata sull'email
+    url_with_filter = f"{url}?email=eq.{usr}"
+
+    # Effettua la richiesta PATCH per aggiornare i dati dell'utente
+    response = requests.patch(url_with_filter, headers=headers, json=data)
+    print(response)
+
+    # Verifica il successo dell'operazione
+    if response.status_code == 204:  # 204 indica che l'aggiornamento è avvenuto con successo, ma senza risposta nel corpo
+        print("Database updated successfully")
+    else:
+        raise Exception(f"Server error: {response.status_code}, {response.text}")

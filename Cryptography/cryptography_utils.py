@@ -1,11 +1,14 @@
 import hashlib
+import uuid
 
-def password_hash(psw: str) -> str:
-    return hashlib.sha512(psw.encode()).hexdigest()
+def text_hash(text: str) -> str:
+    return hashlib.sha512(text.encode()).hexdigest()
 
-def password_check(psw: str, hashed_psw: str) -> bool:
-    print(password_hash(psw))
-    print(hashed_psw)
-    print(password_hash(psw) == hashed_psw)
-    return password_hash(psw) == hashed_psw
 
+def equals(clear_text: str, hashed_text: str) -> bool:
+    return text_hash(clear_text) == hashed_text
+
+def get_mac_address():
+    mac = uuid.getnode()
+    mac_address = ':'.join(['{:02x}'.format((mac >> i) & 0xff) for i in range(0, 8*6, 8)][::-1])
+    return mac_address

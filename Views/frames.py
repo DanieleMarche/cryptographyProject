@@ -1,7 +1,15 @@
 import tkinter as tk
 
+
+from Models.user_model import UserModel
+
+
 class MainPageFrame(tk.Frame):
     _instances = {}  # Dizionario che contiene le istanze delle sottoclassi
+    name = None
+    surname = None
+    balance = None
+    touch_id = False
 
     def __new__(cls, *args, **kwargs):
         """Crea una nuova istanza solo se non esiste già per quella classe."""
@@ -17,6 +25,15 @@ class MainPageFrame(tk.Frame):
 
     def add_controller (self, controller):
         self.controller = controller
+
+    def set_data(self, model: UserModel):
+        self.name = model.name
+        self.surname = model.surname
+        self.balance = model.balance
+        self.touch_id = model.touch_id
+
+
+
 
 
 
