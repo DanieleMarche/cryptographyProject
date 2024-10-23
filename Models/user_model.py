@@ -1,15 +1,16 @@
+from Cryptography.cryptography_utils import password_hash, password_check
+from DataBase.database_utils import get_hashed_pwd, user_login
+
+
 class UserModel:
-    _instance = None  # Class variable to keep the instance
 
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(UserModel, cls).__new__(cls)
-        return cls._instance
-
-    def __init__(self):
-        if not hasattr(self, 'initialized'):
-            self.username = None
-            self.password = None
-            self.name = None
-            self.email = None
-            self.initialized = True
+    def __init__(self, username, password):
+        response = user_login(username, password)
+        if response:
+            self.username = response["email"]
+            self.name = response["name"]
+            self.surname = response["surname"]
+            self.balance = response["money"]
+            self.date_of_birth = response["birthday"]
+        else:
+            raise ValueError("Invalid credentials")

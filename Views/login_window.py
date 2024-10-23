@@ -1,5 +1,4 @@
 import tkinter as tk
-from logging import raiseExceptions
 from tkinter import ttk
 from PIL import Image, ImageTk
 
@@ -82,9 +81,20 @@ class LoginView:
         self.password_entry = ttk.Entry(self.bottom_frame, width=30, show="*", style="Rounded.TEntry")
         self.password_entry.grid(row=5, column=0, columnspan=2, pady=(0, 15), padx=20, sticky="ew")
 
+        # Error message label (initially hidden)
+        self.error_label = tk.Label(self.bottom_frame, text="", font=("Helvetica", 10), fg="red")
+        self.error_label.grid(row=6, column=0, columnspan=2, pady=(0, 10))
+
         # Login Button
         self.login_button = ttk.Button(self.bottom_frame, text="Log in", width=10, command=self.login)
-        self.login_button.grid(row=6, column=0, columnspan=2, pady=20, padx=20)
+        self.login_button.grid(row=7, column=0, columnspan=2, pady=20, padx=20)
+
+        # Sign-up link
+        self.signup_label = tk.Label(self.bottom_frame,
+                                     text="If you don't have an account, you can open a new one here!",
+                                     font=("Helvetica", 10), fg="blue", cursor="hand2")
+        self.signup_label.grid(row=8, column=0, columnspan=2, pady=(0, 20))
+        self.signup_label.bind("<Button-1>", lambda e: self.controller.sign_up())
 
     def login(self):
         if self.controller is not None:
@@ -93,6 +103,15 @@ class LoginView:
             self.controller.login(email, password)
             return
 
-    #This function add a controller at the view if it does not already have it
+    # This function adds a controller to the view if it does not already have it
     def add_controller(self, controller):
-            self.controller = controller
+        self.controller = controller
+
+    def clean(self):
+        self.email_entry.delete(0, tk.END)
+        self.password_entry.delete(0, tk.END)
+
+    def show_error(self, message):
+        self.clean()
+        self.error_label.config(text=message)
+        self.error_label.grid()
