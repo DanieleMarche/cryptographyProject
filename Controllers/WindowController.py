@@ -47,6 +47,47 @@ class WindowController:
         except Exception as e:
             messagebox.showinfo(str(e))
 
+    def send_money(self, user: str, amount: int, description: str): 
+        message = ""
+        if user == "" or amount == "" or description == "":
+            
+            if description == "":
+                message += ("Description cannot be empty\n")
+
+            if amount == "":
+                message += ("Amount cannot be empty\n")
+
+            if user == "":
+                message += ("User cannot be empty\n")
+            
+            self.window.frames["Send Money"].show_message(message, "red")
+            return
+
+        if self.usr_model.balance < int(amount):
+            self.window.frames["Send Money"].show_message("Insufficient funds", "red")
+            return
+        
+        try:
+            self.usr_model.new_transaction(user, amount, description)
+        except IndexError: 
+            self.window.frames["Send Money"].show_message("User not found", "red")
+            return
+        except Exception as e:
+            self.window.frames["Send Money"].show_message(str(e), "red")
+            return
+        
+        try: 
+            self.usr_model.update_balance()
+        except Exception as e:
+            raise e
+        
+        self.update_home()
+        self.window.frames["Send Money"].transaction_completed()
+
+    def update_home(self):
+        self.window.frames["Home"].set_data(self.usr_model)
+        
+
 
 
 

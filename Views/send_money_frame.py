@@ -35,12 +35,37 @@ class SendMoneyFrame(MainPageFrame):
         self.send_button = ttk.Button(self, text="Send", command=self.send_money)
         self.send_button.pack(pady=20)
 
+        # Error message label (initially hidden)
+        self.error_label = tk.Label(self, text="", font=("Helvetica", 10), fg="red")
+        self.error_label.pack(pady=(0, 10))
+
     def send_money(self):
         recipient = self.recipient_entry.get()
         amount = self.amount_entry.get()
         description = self.description_entry.get()
+        self.controller.send_money(recipient, amount, description)
         # Add logic to send money
 
+
+    def transaction_completed(self):
+        self.recipient_entry.delete(0, tk.END)
+        self.amount_entry.delete(0, tk.END)
+        self.description_entry.delete(0, tk.END)
+        self.show_message("Transaction completed successfully", "green")
+
+    def show_message(self, message, color: str):
+        self.recipient_entry.delete(0, tk.END)
+        self.amount_entry.delete(0, tk.END)
+        self.description_entry.delete(0, tk.END)
+        self.error_label.config(text=message, fg=color)
+        self.error_label.pack()
+
+        self.after(5000, self.clear_message)
+
+    def clear_message(self):
+        self.error_label.config(text="")
+        self.error_label.pack_forget()
+        
 
 if __name__ == "__main__":
     root = tk.Tk()
