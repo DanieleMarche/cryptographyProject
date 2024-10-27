@@ -7,6 +7,8 @@ from Controllers.WindowController import WindowController
 from Models.user_model import UserModel
 from Views.login_window import LoginView
 from Views.main_window import MainWindow
+from Controllers.RegistrationController import RegistrationController
+from Views.registration_page import RegistrationView
 
 
 class LoginController:
@@ -52,5 +54,7 @@ class LoginController:
 
 
     def sign_up(self):
-        messagebox.showinfo("Sign Up", "Sign Up feature not implemented yet")
+        registration_window = tk.Toplevel(self.view.root)
+        registration_view = RegistrationView(registration_window)
+        RegistrationController(registration_view)
 
