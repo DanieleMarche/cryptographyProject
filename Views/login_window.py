@@ -103,7 +103,8 @@ class LoginView:
                                      text="If you don't have an account, you can open a new one here!",
                                      font=("Helvetica", 10), fg="blue", cursor="hand2")
         self.signup_label.grid(row=10, column=0, columnspan=2, pady=(0, 20))
-        self.signup_label.bind("<Button-1>", lambda e: self.controller.sign_up())
+        # Update the signup_label binding in LoginView
+        self.signup_label.bind("<Button-1>", lambda e: self.controller.open_registration_view())
 
     def login(self):
         if self.controller is not None:
@@ -111,7 +112,10 @@ class LoginView:
             password = self.password_entry.get()
             secret_code = self.secret_code_entry.get()
             self.controller.login(email, password, secret_code)
+            self.signup_label.bind("<Button-1>", lambda e: self.controller.sign_up())
 
+    def open_signup():
+        signup_view = SignUpView(root, window_controller, registration_controller)
 
     # This function adds a controller to the view if it does not already have it
     def add_controller(self, controller):

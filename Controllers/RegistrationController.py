@@ -1,14 +1,12 @@
 import bcrypt
-import hmac
-import hashlib
 import secrets
 import json
 
 
 class RegistrationController:
-    def __init__(self, view):
-        self.view = view
-        self.view.add_controller(self)
+    def __init__(self):
+        self.view = None
+
 
     def register(self, username, password, secret_code, fingerprint_placeholder="dummy_biometric"):
         # 1. Password Hashing
@@ -34,7 +32,6 @@ class RegistrationController:
 
         self.view.show_message("Registration successful!")
 
-    def authenticate_mac(self, message, key):
-        mac = hmac.new(key.encode(), message.encode(), hashlib.sha256).hexdigest()
-        print(f"MAC: {mac}, Algorithm: HMAC-SHA256, Key Length: {len(key) * 8} bits")
-        return mac
+    def add_view(self, view):
+        self.view = view
+

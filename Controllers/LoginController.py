@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import messagebox
 
 import json
 
@@ -52,9 +51,27 @@ class LoginController:
         except Exception as e:
             self.view.show_error(str(e))
 
-
     def sign_up(self):
+        # Open the registration window
         registration_window = tk.Toplevel(self.view.root)
         registration_view = RegistrationView(registration_window)
-        RegistrationController(registration_view)
+        registration_controller = RegistrationController(registration_view)
+        registration_view.add_controller(registration_controller)
+        registration_window.mainloop()
+
+    # In LoginController, add a method to open the RegistrationView
+    def open_registration_view(self):
+        registration_view = RegistrationView(self.view.root)
+        registration_view.add_controller(self)
+        self.view.root.withdraw()  # Hides the login view
+
+    @staticmethod
+    def register_user(email):
+        # Insert logic to save new user to UserModel or database here
+        print("New user created:", email)
+
+
+
+
+
 

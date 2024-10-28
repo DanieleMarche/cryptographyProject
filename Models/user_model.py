@@ -45,6 +45,12 @@ class UserModel:
         except Exception as e:
             raise e
 
+    # Inside UserModel
+    def create_user(self, password, secret_code):
+        new_user = {'username': self.username, 'password': password, 'secret_code': secret_code}
+        with open('user_data.json', 'a') as file:
+            json.dump(new_user, file)
+        return new_user
 
 
 
