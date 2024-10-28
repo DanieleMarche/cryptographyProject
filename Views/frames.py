@@ -1,6 +1,7 @@
 import tkinter as tk
 
 
+from Controllers import WindowController
 from Models.user_model import UserModel
 
 
@@ -23,7 +24,7 @@ class MainPageFrame(tk.Frame):
         self.name = name
         self.controller = None
 
-    def add_controller (self, controller):
+    def add_controller (self, controller: WindowController):
         self.controller = controller
 
     def set_data(self, model: UserModel):

@@ -2,6 +2,9 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 
+from Views.registration_page import SignUpView
+
+
 class LoginView:
     def __init__(self, root):
         self.root = root
@@ -114,7 +117,7 @@ class LoginView:
             self.controller.login(email, password, secret_code)
             self.signup_label.bind("<Button-1>", lambda e: self.controller.sign_up())
 
-    def open_signup():
+    def open_signup(self):
         signup_view = SignUpView(root, window_controller, registration_controller)
 
     # This function adds a controller to the view if it does not already have it
