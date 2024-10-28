@@ -7,7 +7,7 @@ from Models.user_model import UserModel
 from Views.login_window import LoginView
 from Views.main_window import MainWindow
 from Controllers.RegistrationController import RegistrationController
-from Views.registration_page import RegistrationView
+from Views.registration_page import SignUpView
 
 
 class LoginController:
@@ -54,14 +54,14 @@ class LoginController:
     def sign_up(self):
         # Open the registration window
         registration_window = tk.Toplevel(self.view.root)
-        registration_view = RegistrationView(registration_window)
+        registration_view = SignUpView(registration_window)
         registration_controller = RegistrationController(registration_view)
         registration_view.add_controller(registration_controller)
         registration_window.mainloop()
 
     # In LoginController, add a method to open the RegistrationView
     def open_registration_view(self):
-        registration_view = RegistrationView(self.view.root)
+        registration_view = SignUpView(self.view.root)
         registration_view.add_controller(self)
         self.view.root.withdraw()  # Hides the login view
 

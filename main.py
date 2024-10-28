@@ -14,9 +14,6 @@ if __name__ == "__main__":
 
     root = tk.Tk()
 
-    registration_view = SignUpView(root)
-    registration_controller = RegistrationController(registration_view)
-
     #Create the view
     view = LoginView(root)
 
