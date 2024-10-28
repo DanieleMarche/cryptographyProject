@@ -52,6 +52,8 @@ def user_login(usr: str, psw: str, secret_code: str):
             if result and result["touch_id"] == True and result["touch_id_device"] == get_mac_address():
                 if authenticate(): 
                     return get_user_data(usr)
+            else: 
+                raise Exception("Touch ID not enabled or not available on this device")
             
         else:
             raise Exception("Server error")
