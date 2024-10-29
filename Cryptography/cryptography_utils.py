@@ -106,7 +106,7 @@ def encrypt_rsa_transaction(user1_public_key: str, user2_public_key: str, data: 
     user2_enc_session_key = user2_cipher_rsa.encrypt(session_key)
 
     # Encrypt the data with the AES session key
-    cipher_aes = AES.new(session_key, AES.MODE_EAX)
+    cipher_aes = AES.new(session_key, AES.MODE_GCM)
     ciphertext, tag = cipher_aes.encrypt_and_digest(data)
 
     return EncryptedTransaction(user1_enc_session_key, user2_enc_session_key, cipher_aes.nonce, tag, ciphertext)
@@ -144,7 +144,7 @@ def decrypt_rsa(encrypted_data: EncryptedTransaction, passphrase: str, role: int
     session_key = cipher_rsa.decrypt(enc_session_key)
 
     # Decrypt the data with the AES session key
-    cipher_aes = AES.new(session_key, AES.MODE_EAX, nonce)
+    cipher_aes = AES.new(session_key, AES.MODE_GCM, nonce)
     data = cipher_aes.decrypt_and_verify(ciphertext, tag)
     
     return data.decode("utf-8")
