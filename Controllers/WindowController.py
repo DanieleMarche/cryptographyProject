@@ -113,7 +113,12 @@ class WindowController:
         except Exception as e:
             messagebox.showinfo(str(e))
 
-    def send_money(self, user: str, amount: int, description: str): 
+    def send_money(self, user: str, amount, description: str): 
+        """
+        This function is called when the user wants to send money to another user.
+        """
+
+        #Check if any field is empty
         message = ""
         if user == "" or amount == "" or description == "":
             
@@ -128,13 +133,23 @@ class WindowController:
             
             self.window.frames["Send Money"].show_message(message, "red")
             return
+        
+        #Check if amount is a positive integer
+        if not amount.isdigit() or int(amount) <= 0:
+            self.window.frames["Send Money"].show_message("Amount must be a positive number", "red")
+            return
 
+        #Check if user has enough funds
         if self.usr_model.balance < int(amount):
             self.window.frames["Send Money"].show_message("Insufficient funds", "red")
             return
         
+        #Create the data string to be encrypted
+        data = amount + ":" + description
+
+        #Ask the model to create a new transaction
         try:
-            self.usr_model.new_transaction(user, amount, description)
+            self.usr_model.new_transaction(user, data)
         except IndexError: 
             self.window.frames["Send Money"].show_message("User not found", "red")
             return
@@ -142,11 +157,13 @@ class WindowController:
             self.window.frames["Send Money"].show_message(str(e), "red")
             return
         
+        #If everything was successful, update the balance and the home frame
         try: 
             self.usr_model.update_balance()
         except Exception as e:
             raise e
         
+        #Update the home frame and show a success message
         self.update_home()
         self.window.frames["Send Money"].transaction_completed()
 
