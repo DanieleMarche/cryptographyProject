@@ -1,6 +1,7 @@
 import tkinter as tk
 
 from Views.frames import MainPageFrame
+from datetime import datetime
 
 class HomePage(MainPageFrame):
     def __init__(self, parent):
@@ -39,7 +40,9 @@ class HomePage(MainPageFrame):
 
         self.transactions_list.delete(0, tk.END)
         for transaction in self.transactions:
+            # Converti il timestamp in una stringa nel formato dd/mm/aaaa hh:mm
+            created_at = datetime.fromisoformat(transaction["created_at"]).strftime('%d/%m/%Y %H:%M')
             if transaction["user1"] == model.username:
-                self.transactions_list.insert(tk.END, f"{transaction["created_at"]} Sent {transaction['money']}€ to {transaction['user2']} with description: '{transaction['description']}'")
-            else: 
-                self.transactions_list.insert(tk.END, f"{transaction["created_at"]} Received {transaction['money']}€ from {transaction['user1']} with description: '{transaction['description']}'")
+                self.transactions_list.insert(tk.END, f"{created_at} Sent {transaction['amount']}€ to {transaction['user2']} with description: '{transaction['description']}'")
+            else:
+                self.transactions_list.insert(tk.END, f"{created_at} Received {transaction['amount']}€ from {transaction['user1']} with description: '{transaction['description']}'")
