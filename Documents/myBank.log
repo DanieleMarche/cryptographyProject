@@ -1,0 +1,16 @@
+INFO:root:Correct passkey provided.
+ERROR:root:Invalid passphrase provided.
+INFO:root:Correct passkey provided.
+ERROR:root:Invalid passphrase provided.
+INFO:root:Correct passkey provided.
+ERROR:root:Invalid passphrase provided.
+INFO:root:Correct passkey provided.
+INFO:root:Correct passkey provided.
+INFO:root:Data encrypted using AES-GCM with 128-bit session key.
+INFO:root:Correct passkey provided.
+INFO:root:Correct passkey provided.
+INFO:root:Data decryption and authentication successful using AES-GCM.
+INFO:root:Data decryption and authentication successful using AES-GCM.
+INFO:root:Data encrypted using AES-GCM with 128-bit session key.
+INFO:root:Data decryption and authentication successful using AES-GCM.
+INFO:root:Data decryption and authentication successful using AES-GCM.
