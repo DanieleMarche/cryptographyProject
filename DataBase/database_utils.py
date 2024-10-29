@@ -1,7 +1,8 @@
 import requests
 import pytz
+import ast
 from datetime import datetime
-from Cryptography.cryptography_utils import text_hash, equals, get_mac_address
+from Cryptography.cryptography_utils import *
 from Cryptography.touchid import authenticate
 
 
@@ -38,7 +39,10 @@ def get_hashed(usr: str):
     return None
 
 def user_login(usr: str, psw: str, secret_code: str):
-    if psw == "" and secret_code == "": 
+    if not is_correct_passkey(secret_code): 
+        raise Exception("Invalid secret code.")
+    
+    if psw == "": 
         data = {
         "select": "email, touch_id, touch_id_device",
         "email": f"eq.{usr}",
@@ -67,7 +71,7 @@ def user_login(usr: str, psw: str, secret_code: str):
 
 def get_user_data(usr):
     data = {
-        "select": "email, name, surname, money, birthday, last_balance_update, touch_id, touch_id_device",
+        "select": "email, name, surname, money, birthday, last_balance_update, touch_id, touch_id_device, public_key",
         "email": f"eq.{usr}",
     }
 
@@ -138,17 +142,23 @@ def get_user_public_key(user: str):
     else:
         raise Exception(f"Server error: {response.status_code}, {response.text}")
     
-def add_transaction(user1: str, user2: str, amount: int, description: str): 
+def add_transaction(user1: str, user1_public_key: str, user2: str, user2_public_key: str, data: str): 
     current_time = datetime.now(pytz.utc).isoformat()
+
+    key1 = ast.literal_eval(user1_public_key)
+    key2 = ast.literal_eval(user2_public_key)
+
+    encrypted_data =  encrypt_rsa_transaction(ast.literal_eval(user1_public_key), ast.literal_eval(user2_public_key), data)
 
     data = {
         "user1": user1,
         "created_at": current_time,
         "user2": user2,
-        "money": amount,
-        "description": description,
-        "AES_key": "AES",
-        "iv": "iv"
+        "enc_data": str(encrypted_data.cyphertext),
+        "user1_AES_encrypted_key": str(encrypted_data.user1_aes_key),
+        "user2_AES_encrypted_key": str(encrypted_data.user2_aes_key),
+        "iv": str(encrypted_data.aes_nounce),
+        "tag": str(encrypted_data.tag)
     }
 
     response = requests.post(transaction_url, headers=headers, json=data)
@@ -162,18 +172,32 @@ def add_transaction(user1: str, user2: str, amount: int, description: str):
 
 def get_transactions(user: str):
     data = {
-        "select": "user1, created_at, user2, money, description",
+        "select": "*",
         "or": f"(user1.eq.{user},user2.eq.{user})",
         "order": "created_at.asc"
     }
 
     response = requests.get(transaction_url, headers=headers, params=data)
-    print(response)
 
-    # Verifica il successo dell'operazione
-    if response.status_code == 200:  # 204 indica che l'aggiornamento è avvenuto con successo, ma senza risposta nel corpo
+    if response.status_code == 200:
         result = response.json()
-        return result
+        transactions = []
+        for item in result:
+            encrypted_transaction = EncryptedTransaction(
+                cyphertext=item['enc_data'],
+                user1_aes_key=item['user1_AES_encrypted_key'],
+                user2_aes_key=item['user2_AES_encrypted_key'],
+                aes_nounce=item['iv'],
+                tag=item['tag']
+            )
+            transactions.append({
+                'id': item['id'],
+                'created_at': item['created_at'],
+                'user1': item['user1'],
+                'user2': item['user2'],
+                'encrypted_transaction': encrypted_transaction
+            })
+        return transactions
     else:
         raise Exception(f"Server error: {response.status_code}, {response.text}")
     

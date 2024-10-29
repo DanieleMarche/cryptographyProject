@@ -11,7 +11,7 @@ class UserModel:
     def __init__(self, username, password, secret_code):
         try:
             response = user_login(username, password, secret_code)
-            print(response)
+            
             if response:
                 self.username = response["email"]
                 self.name = response["name"]
@@ -20,14 +20,17 @@ class UserModel:
                 self.date_of_birth = response["birthday"]
                 self.touch_id = response["touch_id"]
                 self.touch_id_device = response["touch_id_device"]
+                self.public_key = response["public_key"]
+                self.secret_code = secret_code
                 a = response["last_balance_update"]
                 print(response["last_balance_update"])
                 self.last_balance_update = datetime.fromisoformat(a)
+                
+                enc_transactions = get_transactions(self.username)
 
-                
-                self.transactions = get_transactions(self.username)
-                
-                if datetime.fromisoformat(self.transactions[-1]["created_at"]) > self.last_balance_update:
+                self.transactions = self.decrypt_transactions(enc_transactions, self.secret_code)
+                    
+                if len(self.transactions) > 0 and datetime.fromisoformat(self.transactions[-1]["created_at"]) > self.last_balance_update:
                     self.update_balance()
 
         except ValueError as e:
@@ -62,11 +65,14 @@ class UserModel:
         except Exception as e:
             raise e
         
-    def new_transaction(self, user: str, amount: int, description: str): 
+    def new_transaction(self, receiver: str, data: str): 
         try:
-            user_public_key = get_user_public_key(user)
-            #encryption will be implemented later
-            add_transaction(self.username, user, amount, description)
+            receiver_public_key = get_user_public_key(receiver)["public_key"]
+        except Exception as e: 
+            raise e
+
+        try:
+            add_transaction(self.username, self.public_key, receiver, receiver_public_key,  data)
             
         except Exception as e:
             raise e
@@ -84,17 +90,42 @@ class UserModel:
         """
 
         try:
-            self.transactions = get_transactions(self.username)
+            self.transactions = self.decrypt_transactions(get_transactions(self.username), self.secret_code)
             for transaction in self.transactions:
                 if datetime.fromisoformat(transaction["created_at"]) > self.last_balance_update:
                     if transaction["user1"] == self.username:
-                        self.balance -= transaction["money"]
+                        self.balance -= int(transaction["amount"])
                     else:
-                        self.balance += transaction["money"]  
+                        self.balance += int(transaction["amount"])
 
             upadate_balance(self.username, self.balance)
         except Exception as e:
             raise e
+        
+    def decrypt_transactions(self, enc_transactions: list, secret_code) -> list[dict]: 
+        """
+        This function decrypt every transaction. 
+        """
+        dec_transactions = []
+        for enc_transaction in enc_transactions: 
+            if enc_transaction["user1"] == self.username: role = 1
+            else: role = 2
+
+            dec_data = decrypt_rsa(enc_transaction["encrypted_transaction"], secret_code, role)
+
+            data = dec_data.split(":")
+
+            dec_transaction = {
+                "user1" : enc_transaction["user1"],
+                "user2" : enc_transaction["user2"],
+                "created_at" : enc_transaction["created_at"],
+                "amount" : data[0],
+                "description" : data[1]
+                }
+            
+            dec_transactions.append(dec_transaction)
+
+        return dec_transactions
         
 
 
