@@ -1,10 +1,13 @@
 import hashlib
 import uuid
 import ast
+import logging
 
 from Crypto.Random import get_random_bytes
 from Crypto.Cipher import AES, PKCS1_OAEP
 from Crypto.PublicKey import RSA
+
+logging.basicConfig(filename= "Documents/myBank.log", level=logging.INFO)
 
 class EncryptedTransaction():
     def __init__(self, user1_aes_key, user2_aes_key, aes_nounce, tag, cyphertext):
@@ -71,10 +74,12 @@ def generate_rsa_keys(secret_code: str):
                               protection="scryptAndAES128-CBC",
                               prot_params={'iteration_count':131072})
 
-    with open("Documents/rsa_key_mario.bin", "wb") as f:
+    with open("Documents/rsa_key.bin", "wb") as f:
         f.write(encrypted_key)
 
     public_key = key.publickey().export_key()
+
+    logging.info("Generated RSA keys 2048 bits long" )
 
     return public_key
 
@@ -82,71 +87,58 @@ from typing import Tuple
 
 def encrypt_rsa_transaction(user1_public_key: str, user2_public_key: str, data: str) -> EncryptedTransaction:
     """
-    This function uses code from the PyCryptodome library and docs to encrypt data using RSA.
-    This function encrypts the AES key using the RSA public key of both users of the transaction
-    so that both can decrypt the data in the future.
-    :param user1_public_key: The public RSA key of user 1
-    :param user2_public_key: The public RSA key of user 2
-    :param data: The data to encrypt
-    :return: A dictionary containing the encrypted session keys, nonce, tag, and ciphertext
+    Encrypts data using RSA and AES in GCM mode.
     """
-
     data = data.encode("utf-8")
 
     user1_recipient_key = RSA.import_key(user1_public_key)
     user2_recipient_key = RSA.import_key(user2_public_key)
-
     session_key = get_random_bytes(16)
 
-    # Encrypt the session key with the public RSA key
+    # Encrypt the session key with RSA public keys
     user1_cipher_rsa = PKCS1_OAEP.new(user1_recipient_key)
     user1_enc_session_key = user1_cipher_rsa.encrypt(session_key)
-
     user2_cipher_rsa = PKCS1_OAEP.new(user2_recipient_key)
     user2_enc_session_key = user2_cipher_rsa.encrypt(session_key)
 
-    # Encrypt the data with the AES session key
+    # Encrypt data with AES in GCM mode
     cipher_aes = AES.new(session_key, AES.MODE_GCM)
     ciphertext, tag = cipher_aes.encrypt_and_digest(data)
 
+    logging.info("Data encrypted using AES-GCM with 128-bit session key.")
     return EncryptedTransaction(user1_enc_session_key, user2_enc_session_key, cipher_aes.nonce, tag, ciphertext)
-
-
 
 def decrypt_rsa(encrypted_data: EncryptedTransaction, passphrase: str, role: int) -> str:
     """
-    This function uses code from the PyCryptodome library and docs to decrypt data using RSA.
-    :param encrypted_data: The dictionary containing encrypted session key, nonce, tag, and ciphertext
-    :param passphrase: The passphrase to decrypt the private RSA key
-    :param role: The role of the user in the transaction, 1 for sender, 2 for receiver
+    Decrypts data using RSA and AES in GCM mode.
     """
-
-    # Load the private RSA key, if the passphrase is incorrect, raise a ValueError
-    try: 
-        private_key = RSA.import_key(open("Documents/rsa_key.bin").read(), passphrase=passphrase)
+    # Load the private RSA key
+    try:
+        private_key = RSA.import_key(open("Documents/rsa_key_mario.bin").read(), passphrase=passphrase)
     except ValueError:
+        logging.error("Invalid passphrase provided.")
         raise ValueError("Invalid passphrase")
 
-    # Get the encrypted session key, nonce, tag, and ciphertext from the dictionary
-    if role == 1:
-        enc_session_key = encrypted_data.user1_aes_key
-    elif role == 2:
-        enc_session_key = encrypted_data.user2_aes_key
-    else: 
-        raise ValueError("Invalid role")
-    
-    nonce = encrypted_data.aes_nounce
-    tag = encrypted_data.tag
-    ciphertext = encrypted_data.cyphertext
+    enc_session_key = (encrypted_data.user1_enc_session_key if role == 1 else
+                       encrypted_data.user2_enc_session_key)
 
-    # Decrypt the session key with the private RSA key
+    nonce = encrypted_data.nonce
+    tag = encrypted_data.tag
+    ciphertext = encrypted_data.ciphertext
+
+    # Decrypt session key
     cipher_rsa = PKCS1_OAEP.new(private_key)
     session_key = cipher_rsa.decrypt(enc_session_key)
 
-    # Decrypt the data with the AES session key
+    # Decrypt data and verify authenticity
     cipher_aes = AES.new(session_key, AES.MODE_GCM, nonce)
-    data = cipher_aes.decrypt_and_verify(ciphertext, tag)
-    
+    try:
+        data = cipher_aes.decrypt_and_verify(ciphertext, tag)
+        logging.info("Data decryption and authentication successful using AES-GCM.")
+    except ValueError:
+        logging.error("Authentication failed. Data integrity compromised.")
+        raise ValueError("Authentication failed")
+
     return data.decode("utf-8")
 
 def is_correct_passkey(passkey: str) -> bool:
@@ -157,6 +149,8 @@ def is_correct_passkey(passkey: str) -> bool:
     """
     try:
         RSA.import_key(open("Documents/rsa_key.bin").read(), passphrase=passkey)
+        logging.info("Correct passkey provided.")
         return True
     except (ValueError, IndexError):
+        logging.error("Invalid passkey provided.")
         return False
