@@ -10,7 +10,7 @@ class UserModel:
 
     def __init__(self, username, password, secret_code):
         try:
-            response = user_login(username, password, secret_code)
+            response = self.user_login(username, password, secret_code)
             
             if response:
                 self.username = response["email"]
@@ -135,6 +135,36 @@ class UserModel:
         with open('user_data.json', 'a') as file:
             json.dump(new_user, file)
         return new_user
+    
+    @staticmethod
+    def user_login(usr: str, psw: str, secret_code: str):
+        if not is_correct_passkey(secret_code): 
+            raise Exception("Invalid secret code.")
+        
+        if psw == "": 
+            data = {
+            "select": "email, touch_id, touch_id_device",
+            "email": f"eq.{usr}",
+            }
+
+            response = requests.get(user_url, headers=headers, params=data)
+
+            if response.status_code == 200:
+                result = response.json()
+                result = result[0]
+                if result and result["touch_id"] == True and result["touch_id_device"] == get_mac_address():
+                    if authenticate(): 
+                        return get_user_data(usr)
+                else: 
+                    raise Exception("Touch ID not enabled or not available on this device")
+                
+            else:
+                raise Exception("Server error")
+        else: 
+
+            hashed_psw, salt = get_hashed(usr)
+            if equals(psw.encode() + ast.literal_eval(salt), hashed_psw):
+                return get_user_data(usr)
 
 
 

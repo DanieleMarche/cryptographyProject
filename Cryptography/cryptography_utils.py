@@ -43,10 +43,8 @@ class EncryptedTransaction():
         return f"user1_aes_key: {self.user1_aes_key}, user2_aes_key: {self.user2_aes_key}, aes_nounce: {self.aes_nounce}, tag: {self.tag}, cyphertext: {self.cyphertext}" 
 
 
-
-def text_hash(text: str) -> str:
-    return hashlib.sha512(text.encode()).hexdigest()
-
+def text_hash(encoded_text: bytes) -> str:
+    return hashlib.sha512(encoded_text).hexdigest()
 
 def equals(clear_text: str, hashed_text: str) -> bool:
     return text_hash(clear_text) == hashed_text
@@ -154,3 +152,4 @@ def is_correct_passkey(passkey: str) -> bool:
     except (ValueError, IndexError):
         logging.error("Invalid passkey provided.")
         return False
+    

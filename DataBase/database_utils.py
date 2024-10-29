@@ -28,50 +28,21 @@ def get_hashed(usr: str):
     """
 
     data = {
-        "select": "password, secret_code",
+        "select": "password, salt",
         "email": f"eq.{usr}",
     }
     response = requests.get(user_url, headers=headers, params=data)
     if response.status_code == 200:
         result = response.json()
         if result:
-            return result[0]["password"], result[0]["secret_code"]
+            return result[0]["password"], result[0]["salt"]
     return None
-
-def user_login(usr: str, psw: str, secret_code: str):
-    if not is_correct_passkey(secret_code): 
-        raise Exception("Invalid secret code.")
-    
-    if psw == "": 
-        data = {
-        "select": "email, touch_id, touch_id_device",
-        "email": f"eq.{usr}",
-        }
-
-        response = requests.get(user_url, headers=headers, params=data)
-
-        if response.status_code == 200:
-            result = response.json()
-            result = result[0]
-            if result and result["touch_id"] == True and result["touch_id_device"] == get_mac_address():
-                if authenticate(): 
-                    return get_user_data(usr)
-            else: 
-                raise Exception("Touch ID not enabled or not available on this device")
-            
-        else:
-            raise Exception("Server error")
-    else: 
-
-        hashed_psw, hashed_secret_code = get_hashed(usr)
-        if equals(psw, hashed_psw) and equals(secret_code, hashed_secret_code):
-            return get_user_data(usr)
 
 
 
 def get_user_data(usr):
     data = {
-        "select": "email, name, surname, money, birthday, last_balance_update, touch_id, touch_id_device, public_key",
+        "select": "*",
         "email": f"eq.{usr}",
     }
 
