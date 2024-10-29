@@ -114,17 +114,17 @@ def decrypt_rsa(encrypted_data: EncryptedTransaction, passphrase: str, role: int
     """
     # Load the private RSA key
     try:
-        private_key = RSA.import_key(open("Documents/rsa_key_mario.bin").read(), passphrase=passphrase)
+        private_key = RSA.import_key(open("Documents/rsa_key.bin").read(), passphrase=passphrase)
     except ValueError:
-        logging.error("Invalid passphrase provided.")
+        logging.error("Invalid passphrase provided for decrypt data.")
         raise ValueError("Invalid passphrase")
 
-    enc_session_key = (encrypted_data.user1_enc_session_key if role == 1 else
-                       encrypted_data.user2_enc_session_key)
+    enc_session_key = (encrypted_data.user1_aes_key if role == 1 else
+                       encrypted_data.user2_aes_key)
 
-    nonce = encrypted_data.nonce
+    nonce = encrypted_data.aes_nounce
     tag = encrypted_data.tag
-    ciphertext = encrypted_data.ciphertext
+    ciphertext = encrypted_data.cyphertext
 
     # Decrypt session key
     cipher_rsa = PKCS1_OAEP.new(private_key)
