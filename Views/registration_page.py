@@ -9,7 +9,7 @@ from tkinter import messagebox
 import tkinter as tk
 from tkinter import ttk
 
-#from Controllers import RegistrationController
+from Controllers import RegistrationController
 
 
 class SignUpView:

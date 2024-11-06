@@ -28,8 +28,7 @@ class MainPageFrame(tk.Frame):
         self.controller = controller
 
     def set_data(self, model: UserModel):
-        self.name = model.name
-        self.surname = model.surname
+        self.name = model.user_data
         self.balance = model.balance
         self.touch_id = model.touch_id
 
