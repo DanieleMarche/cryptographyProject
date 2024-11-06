@@ -31,7 +31,7 @@ class HomePage(MainPageFrame):
 
 
     def set_data(self, model):
-        self.name = model.name
+        self.name = model.user_data
         self.balance = model.balance
         self.transactions = model.transactions
 

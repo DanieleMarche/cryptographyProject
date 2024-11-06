@@ -172,3 +172,12 @@ def get_transactions(user: str):
     else:
         raise Exception(f"Server error: {response.status_code}, {response.text}")
     
+def new_row(user_data):
+    
+    response = requests.post(user_url, headers=headers, json=user_data)
+
+    if response.status_code == 201:  # 201 indicates that the creation was successful
+        print("New row added successfully")
+    else:
+        raise Exception(f"Server error: {response.status_code}, {response.text}")
+    

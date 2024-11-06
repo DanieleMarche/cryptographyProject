@@ -1,36 +1,54 @@
-import bcrypt
 import secrets
 import json
 
+from Cryptography.cryptography_utils import *
+from Models.user_model import UserModel
+from tkinter import messagebox
+from datetime import datetime
+
 
 class RegistrationController:
-    def __init__(self):
+    def _init_(self):
         self.view = None
 
 
-    def register(self, username, password, secret_code, fingerprint_placeholder="dummy_biometric"):
-        # 1. Password Hashing
-        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+    def register(self, username, password, first_name, last_name):
+        # Password Hashing
+        salt = generate_salt()
 
-        # 2. Token Authentication (Simulating SMS or App token)
-        token = secrets.token_hex(16)  # Example token generation
+        password_to_hash = password.encode() + salt # Example password hashing
 
-        # 3. Store Biometric Mock (Fingerprint Placeholder)
+        hashed_password = text_hash(password_to_hash)
+
+        # Generate a unique code
+        unique_code = secrets.token_urlsafe(12)[:16]
+
+        rsa_public_key = generate_rsa_keys(unique_code).decode()
+
+        kdf_salt = get_random_bytes(16)
+        psw = kdf(password, salt=kdf_salt)
+
+        en_name = aes_encrypt(first_name+ " " + last_name, psw)
+
         user_data = {
-            "username": username,
-            "password_hash": hashed_password.decode(),
-            "secret_code": secret_code,
-            "token": token,
-            "fingerprint": fingerprint_placeholder  # This should ideally be a hash of biometric data
+            "email": username,
+            "user_data": str(en_name),
+            "password": hashed_password,
+            "salt" : str(salt),
+            "touch_id": False,
+            "public_key": rsa_public_key,
+            "money": 0,
+            "last_balance_update": datetime.now().isoformat(),
+            "salt_aes": str(kdf_salt)
         }
 
-        # Save user data securely
-        with open(f"{username}_credentials.json", "w") as file:
-            json.dump(user_data, file)
-
-        print(f"User {username} registered with token {token}")
-
-        self.view.show_message("Registration successful!")
+        try: 
+            UserModel.create_user(user_data)
+        except Exception as e:
+            self.view.show_error(str(e))
+            return
+        
+        messagebox.showinfo("Success", f"User {username} registered with secret code {unique_code}/nPlease remember this code as it will be used for login")
 
     def add_view(self, view):
         self.view = view

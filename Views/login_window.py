@@ -3,6 +3,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 
 from Views.registration_page import SignUpView
+from Controllers.RegistrationController import RegistrationController
 
 
 class LoginView:
@@ -107,7 +108,7 @@ class LoginView:
                                      font=("Helvetica", 10), fg="blue", cursor="hand2")
         self.signup_label.grid(row=10, column=0, columnspan=2, pady=(0, 20))
         # Update the signup_label binding in LoginView
-        self.signup_label.bind("<Button-1>", lambda e: self.controller.open_registration_view())
+        self.signup_label.bind("<Button-1>", lambda e: self.controller.open_signup(root))
 
     def login(self):
         if self.controller is not None:
@@ -115,10 +116,6 @@ class LoginView:
             password = self.password_entry.get()
             secret_code = self.secret_code_entry.get()
             self.controller.login(email, password, secret_code)
-            self.signup_label.bind("<Button-1>", lambda e: self.controller.sign_up())
-
-    def open_signup(self):
-        signup_view = SignUpView(root, window_controller, registration_controller)
 
     # This function adds a controller to the view if it does not already have it
     def add_controller(self, controller):

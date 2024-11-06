@@ -13,18 +13,6 @@ class SettingsFrame(MainPageFrame):
         self.title_label = ttk.Label(self, text="Settings", font=("Helvetica", 18, "bold"))
         self.title_label.pack(pady=20)
 
-        # Option 1 Label and Entry
-        self.option1_label = ttk.Label(self, text="Option 1:", font=("Helvetica", 14))
-        self.option1_label.pack(pady=5)
-        self.option1_entry = ttk.Entry(self, width=30)
-        self.option1_entry.pack(pady=5)
-
-        # Option 2 Label and Entry
-        self.option2_label = ttk.Label(self, text="Option 2:", font=("Helvetica", 14))
-        self.option2_label.pack(pady=5)
-        self.option2_entry = ttk.Entry(self, width=30)
-        self.option2_entry.pack(pady=5)
-
         # Touch ID access Label and Toggle Switch
         self.touch_id_label = ttk.Label(self, text="Remember me and enable TouchID access:", font=("Helvetica", 14))
         self.touch_id_label.pack(pady=5)

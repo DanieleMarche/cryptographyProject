@@ -49,6 +49,9 @@ def text_hash(encoded_text: bytes) -> str:
 def equals(clear_text: str, hashed_text: str) -> bool:
     return text_hash(clear_text) == hashed_text
 
+def generate_salt():
+    return get_random_bytes(16)
+
 def get_mac_address():
     mac = uuid.getnode()
     mac_address = ':'.join(['{:02x}'.format((mac >> i) & 0xff) for i in range(0, 8*6, 8)][::-1])
@@ -63,7 +66,6 @@ def generate_rsa_keys(secret_code: str):
         bytes: The public key in PEM format.
     The private key is saved to 'Documents/rsa_key.bin' with PKCS#8 and 
     scryptAndAES128-CBC protection.
-    
     """
     key = RSA.generate(2048)
 
@@ -80,8 +82,6 @@ def generate_rsa_keys(secret_code: str):
     logging.info("Generated RSA keys 2048 bits long" )
 
     return public_key
-
-from typing import Tuple
 
 def encrypt_rsa_transaction(user1_public_key: str, user2_public_key: str, data: str) -> EncryptedTransaction:
     """
@@ -153,3 +153,40 @@ def is_correct_passkey(passkey: str) -> bool:
         logging.error("Invalid passkey provided.")
         return False
     
+def kdf(passphrase: str, salt: bytes) -> bytes:
+    """
+    Derives a key from the passphrase using PBKDF2.
+    :param passphrase: The passphrase to derive the key from
+    :param salt: The salt to use in the key derivation
+    :return: The derived key
+    """
+    return hashlib.pbkdf2_hmac("sha256", passphrase.encode(), salt, 100000, 32)
+
+def aes_encrypt(data: str, key: bytes) -> bytes:
+    """
+    Encrypts data using AES in CBC mode.
+    :param data: The data to encrypt
+    :param key: The key to use for encryption
+    :return: The encrypted data
+    """
+    cipher = AES.new(key, AES.MODE_CBC)
+    iv = cipher.iv
+    padded_data = data + (16 - len(data) % 16) * chr(16 - len(data) % 16)
+    ciphertext = cipher.encrypt(padded_data.encode())
+    logging.info("Encrypted AES CBC with key 16 bytes long")
+    return iv + ciphertext
+
+def aes_decrypt(ciphertext: bytes, key: bytes) -> str:
+    """
+    Decrypts data using AES in CBC mode.
+    :param ciphertext: The encrypted data
+    :param key: The key to use for decryption
+    :return: The decrypted data
+    """
+    iv = ciphertext[:16]
+    ciphertext = ciphertext[16:]
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    padded_data = cipher.decrypt(ciphertext).decode()
+    padding_length = ord(padded_data[-1])
+    logging.info("Decrypted AES CBC with key 16 bytes long")
+    return padded_data[:-padding_length]

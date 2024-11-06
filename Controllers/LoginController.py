@@ -51,14 +51,16 @@ class LoginController:
         except Exception as e:
             self.view.show_error(str(e))
 
-    def sign_up(self):
-        # Open the registration window
-        registration_window = tk.Toplevel(self.view.root)
-        registration_view = SignUpView(registration_window)
-        registration_controller = RegistrationController(registration_view)
-        registration_view.add_controller(registration_controller)
-        registration_window.mainloop()
+    def open_signup(self, root):
+        signup_window = tk.Toplevel(root)
+        reg_controller = RegistrationController()
 
+        SignUpView(signup_window, reg_controller)
+
+        reg_controller.add_view(signup_window)
+
+
+        
     # In LoginController, add a method to open the RegistrationView
     def open_registration_view(self):
         registration_view = SignUpView(self.view.root)
@@ -69,6 +71,7 @@ class LoginController:
     def register_user(email):
         # Insert logic to save new user to UserModel or database here
         print("New user created:", email)
+    
 
 
 

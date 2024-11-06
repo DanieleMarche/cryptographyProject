@@ -1,10 +1,12 @@
 import os
 import json
-import pytz
+import ast
+import logging
 
 from datetime import datetime
 from DataBase.database_utils import *
 
+logging.basicConfig(filename= "Documents/myBank.log", level=logging.INFO)
 
 class UserModel:
 
@@ -14,10 +16,15 @@ class UserModel:
             
             if response:
                 self.username = response["email"]
-                self.name = response["name"]
-                self.surname = response["surname"]
+                user_data = ast.literal_eval(response["user_data"])
+                user_data_salt = ast.literal_eval(response["salt_aes"])
+
+                ke = kdf(password, user_data_salt)
+
+                self.user_data = aes_decrypt(user_data, ke)
+                
+
                 self.balance = response["money"]
-                self.date_of_birth = response["birthday"]
                 self.touch_id = response["touch_id"]
                 self.touch_id_device = response["touch_id_device"]
                 self.public_key = response["public_key"]
@@ -126,15 +133,14 @@ class UserModel:
             dec_transactions.append(dec_transaction)
 
         return dec_transactions
-        
-
 
     # Inside UserModel
-    def create_user(self, password, secret_code):
-        new_user = {'username': self.username, 'password': password, 'secret_code': secret_code}
-        with open('user_data.json', 'a') as file:
-            json.dump(new_user, file)
-        return new_user
+    @staticmethod
+    def create_user(user_data: dict):
+        try:
+            new_row(user_data)
+        except Exception as e:
+            raise e
     
     @staticmethod
     def user_login(usr: str, psw: str, secret_code: str):
