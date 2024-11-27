@@ -1,0 +1,87 @@
+#
+# Archivo de configuración de OpenSSL para YoSafe S.A. con EdDSA (Ed25519)
+#
+
+HOME            = .
+RANDFILE        = $ENV::HOME/.rnd
+
+# Definiciones adicionales de identificadores de objeto
+oid_section     = new_oids
+
+[ new_oids ]
+# Aquí se pueden agregar nuevos OID si es necesario
+
+####################################################################
+[ ca ]
+default_ca       = CA_default    # Sección predeterminada para la CA
+
+####################################################################
+[ CA_default ]
+
+dir             = ./              # Directorio base
+certs           = $dir/certificados     # Certificados emitidos
+crl_dir         = $dir/crls             # Listas de revocación (CRL)
+database        = $dir/index.txt        # Base de datos de certificados emitidos
+new_certs_dir   = $dir/nuevoscerts      # Nuevos certificados
+certificate     = $dir/yosafe_cert.pem      # Certificado de YoSafe S.A. (emitido por ARC)
+serial          = $dir/serial           # Número de serie actual
+private_key     = $dir/privado/yosafe_key.pem # Clave privada de YoSafe S.A.
+RANDFILE        = $dir/privado/.rand    # Archivo de números aleatorios privados
+
+# Extensiones X.509v3 para los certificados emitidos
+x509_extensions = usr_cert
+
+# Duración de los certificados emitidos
+default_days    = 1825           # Certificados válidos por 5 años
+default_crl_days= 30             # CRL válidos por 30 días
+default_md      = sha256         # Algoritmo de hash predeterminado
+preserve        = no             # Mantener el orden del DN proporcionado
+
+# Política para la verificación de las solicitudes
+policy          = policy_match
+
+####################################################################
+[ policy_match ]
+countryName             = supplied
+stateOrProvinceName     = optional
+organizationName        = supplied
+organizationalUnitName  = optional
+commonName              = supplied
+emailAddress            = optional
+
+####################################################################
+[ req ]
+default_bits        = 256
+default_keyfile     = ./privado/yosafe_key.pem
+default_md          = sha256
+prompt              = no
+distinguished_name  = req_distinguished_name
+req_extensions      = v3_req   # Extensiones añadidas a la solicitud de certificado
+
+[ req_distinguished_name ]
+countryName         = ES
+stateOrProvinceName = Madrid
+organizationName    = YoSafe S.A.
+commonName          = YoSafe Intermediate CA
+emailAddress        = yosafe@secure.es
+
+####################################################################
+[ usr_cert ]
+# Extensiones para certificados emitidos a ciudadanos
+basicConstraints    = CA:FALSE
+keyUsage            = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage    = clientAuth, emailProtection
+subjectKeyIdentifier= hash
+authorityKeyIdentifier= keyid,issuer:always
+
+####################################################################
+[ v3_req ]
+# Extensiones añadidas a la solicitud de certificado
+basicConstraints = critical,CA:TRUE,pathlen:0
+keyUsage = critical, cRLSign, keyCertSign
+subjectKeyIdentifier = hash
+
+####################################################################
+[ crl_ext ]
+# Extensiones para una lista de revocación (CRL)
+authorityKeyIdentifier = keyid:always,issuer:always
