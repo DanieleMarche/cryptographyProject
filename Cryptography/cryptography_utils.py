@@ -15,7 +15,7 @@ from pathlib import Path
 logging.basicConfig(filename= "Documents/myBank.log", level=logging.INFO)
 
 class Transaction():
-    def __init__(self, user1, user2, user1_aes_key, user2_aes_key, aes_nounce, tag, data, created_at):
+    def __init__(self, user1, user2, user1_aes_key, user2_aes_key, aes_nounce, tag, data, sign, cert, cert_chain, created_at):
         self.user1 = user1
         self.user2 = user2
         
@@ -44,26 +44,25 @@ class Transaction():
         else:
             self.enc_data = data
         
+        if sign.__class__ != bytes:
+            self.sign = ast.literal_eval(sign)
+        else:
+            self.sign = sign
+        
+        if cert.__class__ != bytes:
+            self.cert = ast.literal_eval(cert)
+        else:
+            self.cert = cert
+        
+        if cert_chain.__class__ != bytes:
+            self.cert_chain = ast.literal_eval(cert_chain)
+        else:
+            self.cert_chain = cert_chain
+        
         self.created_at = created_at
-
-    def __str__(self):
-        return f"user1_aes_key: {self.user1_aes_key}, user2_aes_key: {self.user2_aes_key}, aes_nounce: {self.aes_nounce}, tag: {self.tag}, cyphertext: {self.cyphertext}"
-
-    def __repr__(self):
-        return f"user1_aes_key: {self.user1_aes_key}, user2_aes_key: {self.user2_aes_key}, aes_nounce: {self.aes_nounce}, tag: {self.tag}, cyphertext: {self.cyphertext}" 
-    
-    def to_dict(self): 
-        return {
-            "user1": self.user1,
-            "user2": self.user2,
-            "user1_aes_key": self.user1_aes_key,
-            "user2_aes_key": self.user2_aes_key,
-            "aes_nounce": self.aes_nounce,
-            "tag": self.tag,
-            "created_at": self.created_at,
-            "amount": self.amount,
-            "description": self.description
-        }
+        
+        self.amount = None
+        self.description = None
 
 
 def text_hash(encoded_text: bytes) -> str:

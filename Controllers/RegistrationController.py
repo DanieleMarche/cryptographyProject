@@ -58,7 +58,7 @@ class RegistrationController:
                 "money": 0,
                 "last_balance_update": datetime.now().isoformat(),
                 "salt_aes": str(kdf_salt),
-                "salt_sign_psw": str(cert_psw_salt)
+                "salt_cert_psw": str(cert_psw_salt)
             }
          
             UserModel.create_user(user_data)

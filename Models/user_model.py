@@ -36,6 +36,12 @@ class UserModel:
                 a = response["last_balance_update"]
                 
                 self.last_balance_update = datetime.fromisoformat(a)
+
+                self.cert = response["cert"]
+                self.cert_chain = response["cert_chain"]
+                self.cert_keys = response["cert_keys"]
+
+                self.can_send_money = self.cert and self.cert_chain and self.cert_keys
                 
                 # Gets the transaction and decrypts them
                 enc_transactions = get_transactions(self.username)
@@ -81,13 +87,28 @@ class UserModel:
             raise e
         
     def new_transaction(self, receiver: str, data: str): 
+
+        if not self.can_send_money: 
+            raise Exception("Not abilitate to send money. Wait for your CA to generate your certificate")
+        
         try:
             receiver_public_key = get_user_public_key(receiver)
         except Exception as e: 
             raise e
 
         try:
-            add_transaction(self.username, self.public_key, receiver, receiver_public_key,  data)
+            current_time = datetime.now(pytz.utc).isoformat()
+
+            key1 = self.public_key.encode("utf-8")
+            key2 = receiver_public_key.encode("utf-8")
+
+            # New transaction instance created
+            transaction = Transaction(self.username, receiver, None, None, None, None, data, None, self.cert, self.cert_chain, current_time)
+
+            # The transaction datas are encrypted
+            enc_transaction =  encrypt_rsa_transaction(key1 , key2, transaction)
+
+            add_transaction(enc_transaction)
             
         except Exception as e:
             raise e
@@ -145,6 +166,10 @@ class UserModel:
             dec_transactions.append(dec_transaction)
 
         return dec_transactions
+    
+    def verify_transactions(transactions: list[Transaction]) -> list[Transaction]: 
+        TODO
+
 
     # Inside UserModel
     @staticmethod

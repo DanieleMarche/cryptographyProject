@@ -113,34 +113,20 @@ def get_user_public_key(user: str):
     else:
         raise Exception(f"Server error: {response.status_code}, {response.text}")
     
-def add_transaction(user1: str, user1_public_key: str, user2: str, user2_public_key: str, data: str): 
+
+def add_transaction(transaction: Transaction): 
     """
     Adds a transaction between two users to the database.
     Args:
-        user1 (str): The identifier for the first user.
-        user1_public_key (str): The public key of the first user.
-        user2 (str): The identifier for the second user.
-        user2_public_key (str): The public key of the second user.
-        data (str): The data associated with the transaction.
+        transaction (Transaction): the transaction that will be sent to the database
     Raises:
         Exception: If the server returns an error status code.
     Returns:
         None
     """
 
-    current_time = datetime.now(pytz.utc).isoformat()
-
-    key1 = user1_public_key.encode("utf-8")
-    key2 = user2_public_key.encode("utf-8")
-
-    # New transaction instance created
-    transaction = Transaction(user1, user2, None, None, None, None, data, current_time)
-
-    # The transaction datas are encrypted
-    enc_transaction =  encrypt_rsa_transaction(key1 , key2, transaction)
-
     # Sending request to add the transaction to the database
-    response = requests.post(transaction_url, headers=headers, json=enc_transaction.to_dict())
+    response = requests.post(transaction_url, headers=headers, json=transaction.to_dict())
 
     # Verify the success of the operation
     if response.status_code == 201:  
@@ -172,7 +158,10 @@ def get_transactions(user: str) -> list[Transaction]:
                 user2_aes_key=item['user2_AES_encrypted_key'],
                 aes_nounce=item['iv'],
                 tag=item['tag'],
-                created_at = item['created_at']
+                created_at = item['created_at'],
+                sign = item['sign'],
+                cert = item['cert'],
+                cert_chain = item['cert_chain']
             )
 
             transactions.append(encrypted_transaction)
