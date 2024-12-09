@@ -55,9 +55,9 @@ class LoginController:
         signup_window = tk.Toplevel(root)
         reg_controller = RegistrationController()
 
-        SignUpView(signup_window, reg_controller)
+        sign_up_view = SignUpView(signup_window, reg_controller)
 
-        reg_controller.add_view(signup_window)
+        reg_controller.add_view(sign_up_view)
 
 
         

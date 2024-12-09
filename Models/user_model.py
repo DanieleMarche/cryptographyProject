@@ -12,32 +12,38 @@ class UserModel:
 
     def __init__(self, username, password, secret_code):
         try:
+
+            #try to get the user information from the database
             response = self.user_login(username, password, secret_code)
             
             if response:
+                # Assigns all of the response data to the user model
+
                 self.username = response["email"]
                 user_data = ast.literal_eval(response["user_data"])
                 user_data_salt = ast.literal_eval(response["salt_aes"])
 
-                ke = kdf(password, user_data_salt)
-
-                self.user_data = aes_decrypt(user_data, ke)
+                # Decrypts user's name and surname with the key deriving fromt 
+                # the user's password
+                deriving_key = key_derivation_user_data(password, user_data_salt)
+                self.user_data = aes_decrypt(user_data, deriving_key)
                 
-
                 self.balance = response["money"]
                 self.touch_id = response["touch_id"]
                 self.touch_id_device = response["touch_id_device"]
                 self.public_key = response["public_key"]
                 self.secret_code = secret_code
                 a = response["last_balance_update"]
-                print(response["last_balance_update"])
+                
                 self.last_balance_update = datetime.fromisoformat(a)
                 
+                # Gets the transaction and decrypts them
                 enc_transactions = get_transactions(self.username)
-
                 self.transactions = self.decrypt_transactions(enc_transactions, self.secret_code)
-                    
-                if len(self.transactions) > 0 and datetime.fromisoformat(self.transactions[-1]["created_at"]) > self.last_balance_update:
+
+                # If the last transaction has happened after the last balance update, 
+                # it updates the balance    
+                if len(self.transactions) > 0 and datetime.fromisoformat(self.transactions[-1].created_at) > self.last_balance_update:
                     self.update_balance()
 
         except ValueError as e:
@@ -48,6 +54,8 @@ class UserModel:
             raise e
 
     def save_user_data(self):
+        # HAVE TO MODIFY TO SAVE ALL OF USER DATA
+        # TOUCH ID FEATURE BEING DISMANTLING
         try:
             update_touch_id(self.username, self.touch_id, self.touch_id_device)
 
@@ -74,7 +82,7 @@ class UserModel:
         
     def new_transaction(self, receiver: str, data: str): 
         try:
-            receiver_public_key = get_user_public_key(receiver)["public_key"]
+            receiver_public_key = get_user_public_key(receiver)
         except Exception as e: 
             raise e
 
@@ -109,26 +117,30 @@ class UserModel:
         except Exception as e:
             raise e
         
-    def decrypt_transactions(self, enc_transactions: list, secret_code) -> list[dict]: 
+    def decrypt_transactions(self, enc_transactions: list[Transaction], secret_code) -> list[Transaction]: 
         """
-        This function decrypt every transaction. 
+        Decrypts a list of encrypted transactions where the user is either the sender or the receiver.
+        Args:
+            enc_transactions (list): A list of encrypted transactions. Each transaction is a dictionary 
+                                     containing 'user1', 'user2', 'created_at', and 'encrypted_transaction'.
+            secret_code: The secret code used for RSA decryption.
+        Returns:
+            list[dict]: A list of decrypted transactions. Each transaction is a dictionary containing 
         """
+
+        #the list where the deciphered transaction will be stored
         dec_transactions = []
+
+        #loop through all of the encripted transactions
         for enc_transaction in enc_transactions: 
-            if enc_transaction["user1"] == self.username: role = 1
+
+            #selects the role depending on whether the user is the sender or 
+            #the receiver.
+            #This is made to decide which encripted key to use
+            if enc_transaction.user1 == self.username: role = 1
             else: role = 2
 
-            dec_data = decrypt_rsa(enc_transaction["encrypted_transaction"], secret_code, role)
-
-            data = dec_data.split(":")
-
-            dec_transaction = {
-                "user1" : enc_transaction["user1"],
-                "user2" : enc_transaction["user2"],
-                "created_at" : enc_transaction["created_at"],
-                "amount" : data[0],
-                "description" : data[1]
-                }
+            dec_transaction = decrypt_rsa(enc_transaction, secret_code, role)
             
             dec_transactions.append(dec_transaction)
 
@@ -138,39 +150,34 @@ class UserModel:
     @staticmethod
     def create_user(user_data: dict):
         try:
-            new_row(user_data)
+            add_user_row(user_data)
         except Exception as e:
             raise e
     
     @staticmethod
     def user_login(usr: str, psw: str, secret_code: str):
+        """
+        Authenticates a user by verifying the provided username, password, and secret code.
+        Args:
+            usr (str): The username of the user attempting to log in.
+            psw (str): The password of the user attempting to log in.
+            secret_code (str): A secret code required for additional security verification.
+        Raises:
+            Exception: If the secret code is invalid.
+        Returns:
+            dict: A dictionary containing user data if authentication is successful.
+        """
+
+        #check if the secret code is right
         if not is_correct_passkey(secret_code): 
             raise Exception("Invalid secret code.")
         
-        if psw == "": 
-            data = {
-            "select": "email, touch_id, touch_id_device",
-            "email": f"eq.{usr}",
-            }
+        #get the hashed password and the salt from the database
+        hashed_psw, salt = get_hashed(usr)
 
-            response = requests.get(user_url, headers=headers, params=data)
-
-            if response.status_code == 200:
-                result = response.json()
-                result = result[0]
-                if result and result["touch_id"] == True and result["touch_id_device"] == get_mac_address():
-                    if authenticate(): 
-                        return get_user_data(usr)
-                else: 
-                    raise Exception("Touch ID not enabled or not available on this device")
-                
-            else:
-                raise Exception("Server error")
-        else: 
-
-            hashed_psw, salt = get_hashed(usr)
-            if equals(psw.encode() + ast.literal_eval(salt), hashed_psw):
-                return get_user_data(usr)
+        #check if the hashed password and the hashed input password are the same
+        if equals(psw.encode() + ast.literal_eval(salt), hashed_psw):
+            return get_user_data(usr)
 
 
 

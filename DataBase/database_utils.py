@@ -109,75 +109,122 @@ def get_user_public_key(user: str):
     if response.status_code == 200:  # 204 indica che l'aggiornamento è avvenuto con successo, ma senza risposta nel corpo
         
         result = response.json()
-        return result[0]
+        return result[0]["public_key"]
     else:
         raise Exception(f"Server error: {response.status_code}, {response.text}")
     
 def add_transaction(user1: str, user1_public_key: str, user2: str, user2_public_key: str, data: str): 
+    """
+    Adds a transaction between two users to the database.
+    Args:
+        user1 (str): The identifier for the first user.
+        user1_public_key (str): The public key of the first user.
+        user2 (str): The identifier for the second user.
+        user2_public_key (str): The public key of the second user.
+        data (str): The data associated with the transaction.
+    Raises:
+        Exception: If the server returns an error status code.
+    Returns:
+        None
+    """
+
     current_time = datetime.now(pytz.utc).isoformat()
 
-    key1 = ast.literal_eval(user1_public_key)
-    key2 = ast.literal_eval(user2_public_key)
+    key1 = user1_public_key.encode("utf-8")
+    key2 = user2_public_key.encode("utf-8")
 
-    encrypted_data =  encrypt_rsa_transaction(ast.literal_eval(user1_public_key), ast.literal_eval(user2_public_key), data)
+    # New transaction instance created
+    transaction = Transaction(user1, user2, None, None, None, None, data, current_time)
 
-    data = {
-        "user1": user1,
-        "created_at": current_time,
-        "user2": user2,
-        "enc_data": str(encrypted_data.cyphertext),
-        "user1_AES_encrypted_key": str(encrypted_data.user1_aes_key),
-        "user2_AES_encrypted_key": str(encrypted_data.user2_aes_key),
-        "iv": str(encrypted_data.aes_nounce),
-        "tag": str(encrypted_data.tag)
-    }
+    # The transaction datas are encrypted
+    enc_transaction =  encrypt_rsa_transaction(key1 , key2, transaction)
 
-    response = requests.post(transaction_url, headers=headers, json=data)
-    print(response)
+    # Sending request to add the transaction to the database
+    response = requests.post(transaction_url, headers=headers, json=enc_transaction.to_dict())
 
-    # Verifica il successo dell'operazione
-    if response.status_code == 201:  # 201 indica che la creazione è avvenuta con successo
+    # Verify the success of the operation
+    if response.status_code == 201:  
         print("Transaction completed successfully")
     else:
         raise Exception(f"Server error: {response.status_code}, {response.text}")
 
-def get_transactions(user: str):
+def get_transactions(user: str) -> list[Transaction]:
     data = {
         "select": "*",
         "or": f"(user1.eq.{user},user2.eq.{user})",
         "order": "created_at.asc"
     }
 
-    response = requests.get(transaction_url, headers=headers, params=data)
+    response = requests.get(transaction_url, headers=headers, params=data) 
 
     if response.status_code == 200:
         result = response.json()
+
         transactions = []
         for item in result:
-            encrypted_transaction = EncryptedTransaction(
-                cyphertext=item['enc_data'],
+
+            # For every row a new transaction instance is created
+            encrypted_transaction = Transaction(
+                user1 = item['user1'],
+                user2 = item['user2'],
+                enc_data=item['enc_data'],
                 user1_aes_key=item['user1_AES_encrypted_key'],
                 user2_aes_key=item['user2_AES_encrypted_key'],
                 aes_nounce=item['iv'],
-                tag=item['tag']
+                tag=item['tag'],
+                created_at = item['created_at']
             )
-            transactions.append({
-                'id': item['id'],
-                'created_at': item['created_at'],
-                'user1': item['user1'],
-                'user2': item['user2'],
-                'encrypted_transaction': encrypted_transaction
-            })
+
+            transactions.append(encrypted_transaction)
         return transactions
+    
     else:
         raise Exception(f"Server error: {response.status_code}, {response.text}")
     
-def new_row(user_data):
+def add_user_row(user_data):
+    """
+    Adds a new user row to the database.
+    This function sends a POST request to the specified user URL with the provided user data.
+    If the request is successful (status code 201), it prints a success message.
+    Otherwise, it raises an exception with the server error details.
+    Args:
+        user_data (dict): A dictionary containing the user data to be added.
+    Raises:
+        Exception: If the server returns an error status code, an exception is raised with the error details.
+    """
     
     response = requests.post(user_url, headers=headers, json=user_data)
 
     if response.status_code == 201:  # 201 indicates that the creation was successful
         print("New row added successfully")
+    else:
+        raise Exception(f"Server error: {response.status_code}, {response.text}")
+    
+def add_certificate(user: str, cert_path: str):
+    """
+    Adds a certificate for a user to the database.
+    Args:
+        user (str): The identifier for the user.
+        cert_path (str): The path to the certificate file.
+    Raises:
+        Exception: If the server returns an error status code.
+    Returns:
+        None
+    """
+    with open(cert_path, "r") as cert_file:
+        certificate = cert_file.read()
+
+    data = {
+        "email": user,
+        "certificate": certificate
+    }
+
+    url_with_filter = f"{user_url}?email=eq.{user}"
+
+    response = requests.post(url_with_filter, headers=headers, json=data)
+
+    if response.status_code == 204:
+        print("Certificate added successfully")
     else:
         raise Exception(f"Server error: {response.status_code}, {response.text}")
     

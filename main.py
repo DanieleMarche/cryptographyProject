@@ -6,9 +6,6 @@ from Controllers.RegistrationController import RegistrationController
 from Views.registration_page import SignUpView
 
 
-
-
-
 if __name__ == "__main__":
 
 
